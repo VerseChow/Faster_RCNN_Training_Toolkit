@@ -1,7 +1,9 @@
 #!/bin/bash
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../" && pwd )"
+DIR="$( cd "./../" && pwd )"
 cd $DIR
+mkdir faster_rcnn_models
+cd faster_rcnn_models
 
 FILE=imagenet_models.tgz
 URL=https://dl.dropbox.com/s/gstw7122padlf0l/imagenet_models.tgz?dl=0
