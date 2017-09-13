@@ -23,7 +23,7 @@ Before that!!!
 
 Please include caffe module in ROOT FOLDER [caffe-fast-rcnn](https://github.com/rbgirshick/caffe-fast-rcnn/tree/0dcd397b29507b8314e252e850518c5695efbb83) and compile that!!!
 
-The trained model will be in `/output/faster_rcnn_end2end/train folder`
+The trained model will be in `/output/faster_rcnn_end2end/train` folder
 
 ## Testing
 
