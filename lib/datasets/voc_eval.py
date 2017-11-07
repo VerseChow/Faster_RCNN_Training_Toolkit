@@ -151,7 +151,7 @@ def voc_eval(detpath,
     # no such data in the dataset
     if len(BB) == 0:
         print 'No data in dataset!'
-        return 0, 0, 0
+        return [0], 0, 0
     BB = BB[sorted_ind, :]
     image_ids = [image_ids[x] for x in sorted_ind]
 
@@ -203,5 +203,5 @@ def voc_eval(detpath,
     # ground truth
     prec = tp / np.maximum(tp + fp, np.finfo(np.float64).eps)
     ap = voc_ap(rec, prec, use_07_metric)
-
+    #print rec, ap
     return rec, prec, ap
