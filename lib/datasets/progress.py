@@ -22,14 +22,20 @@ from fast_rcnn.config import cfg
 class progress(imdb):
     def __init__(self, image_set, devkit_path):
         imdb.__init__(self, image_set)
-        
+        self._year = 2012
         self._image_set = image_set
         self._devkit_path = self._get_default_path() if devkit_path is None \
                             else devkit_path
         self._data_path = os.path.join(self._devkit_path)
         self._classes = ('__background__', # always index 0
-                         'chair', 'table', 'lobby_chair', 'lobby_table_small', 'lobby_table_large')
+                         'coconut_oil', 'sonic', 'smile_yellow', 'original', \
+                         'smile_green', 'horse_raddish', 'medleys', 'teddy', \
+                         'mustard', 'coke', 'smile_blue', 'protein', 'quaker', \
+                         'ecliff', 'kind', 'green_tea', 'strawberry', 'naturevalley', \
+                         'coffee_mate', 'iced_coffee', 'soy_sauce', 'folgers', 'cheese_whiz', \
+                         'olive_oil', 'domino', 'salt', 'campbell', 'eclif') 
         self._class_to_ind = dict(zip(self.classes, xrange(self.num_classes)))
+        # image ext format
         self._image_ext = '.jpg'
         self._image_index = self._load_image_set_index()
         # Default to roidb handler
@@ -227,7 +233,7 @@ class progress(imdb):
         path = os.path.join(
             self._devkit_path,
             'results',
-            'VOC' + self._year,
+            'progress_test',
             'Main',
             filename)
         return path
@@ -253,12 +259,10 @@ class progress(imdb):
     def _do_python_eval(self, output_dir = 'output'):
         annopath = os.path.join(
             self._devkit_path,
-            'VOC' + self._year,
             'Annotations',
             '{:s}.xml')
         imagesetfile = os.path.join(
             self._devkit_path,
-            'VOC' + self._year,
             'ImageSets',
             'Main',
             self._image_set + '.txt')

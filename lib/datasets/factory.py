@@ -13,7 +13,7 @@ from datasets.progress import progress
 import numpy as np
 
 #specify the data path
-progress_path = '/home/verse/Documents/semanticSlamRobot/obj_detection/data/progress'
+progress_path = '/home/verse/Documents/Faster_RCNN_Training_Toolkit/data/progress'
 for split in ['train', 'test']:
     name = '{}_{}'.format('progress', split)
     __sets[name] = (lambda split=split: progress(split, progress_path))

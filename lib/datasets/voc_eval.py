@@ -16,9 +16,9 @@ def parse_rec(filename):
     for obj in tree.findall('object'):
         obj_struct = {}
         obj_struct['name'] = obj.find('name').text
-        obj_struct['pose'] = obj.find('pose').text
-        obj_struct['truncated'] = int(obj.find('truncated').text)
-        obj_struct['difficult'] = int(obj.find('difficult').text)
+        obj_struct['pose'] = 0#obj.find('pose').text
+        obj_struct['truncated'] = 1#int(obj.find('truncated').text)
+        obj_struct['difficult'] = 0#int(obj.find('difficult').text)
         bbox = obj.find('bndbox')
         obj_struct['bbox'] = [int(bbox.find('xmin').text),
                               int(bbox.find('ymin').text),
@@ -99,9 +99,11 @@ def voc_eval(detpath,
     cachefile = os.path.join(cachedir, 'annots.pkl')
     # read list of images
     with open(imagesetfile, 'r') as f:
+        print imagesetfile
         lines = f.readlines()
     imagenames = [x.strip() for x in lines]
-
+    #print imagenames
+    #print cachefile
     if not os.path.isfile(cachefile):
         # load annots
         recs = {}
@@ -134,6 +136,7 @@ def voc_eval(detpath,
 
     # read dets
     detfile = detpath.format(classname)
+    #print detfile
     with open(detfile, 'r') as f:
         lines = f.readlines()
 
@@ -145,6 +148,10 @@ def voc_eval(detpath,
     # sort by confidence
     sorted_ind = np.argsort(-confidence)
     sorted_scores = np.sort(-confidence)
+    # no such data in the dataset
+    if len(BB) == 0:
+        print 'No data in dataset!'
+        return 0, 0, 0
     BB = BB[sorted_ind, :]
     image_ids = [image_ids[x] for x in sorted_ind]
 
