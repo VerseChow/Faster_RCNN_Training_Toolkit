@@ -32,6 +32,9 @@ The trained model will be in `/output/faster_rcnn_end2end/train` folder
 3. In `/tools/` folder, in demo.py file, modify class name and model name you want to use
 4. Run `demo.py` file to see the results
 
+### Usage for Calculating mAP
+1. Run `sh test_progress.h`
+
 For more detail, please email ywchow@umich.edu
 
 More features would be released soon!
