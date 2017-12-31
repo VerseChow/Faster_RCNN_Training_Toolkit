@@ -25,15 +25,36 @@ import caffe, os, sys, cv2
 import argparse
 import glob
 
-
+#CLASSES = ('__background__',
+#           'aeroplane', 'bicycle', 'bird', 'boat',
+#           'bottle', 'bus', 'car', 'cat', 'chair',
+#           'cow', 'diningtable', 'dog', 'horse',
+#           'motorbike', 'person', 'pottedplant',
+#           'sheep', 'sofa', 'train', 'tvmonitor')
+#CLASSES = ('background',
+#'person', 'bicycle', 'car','motorcycle','airplane','bus','train', 'truck', 'boat','traffic light',
+#'fire hydrant', 'stop sign', 'parking meter', 'bench','bird','cat','dog','horse','sheep',
+#'cow', 'elephant','bear','zebra','giraffe','hat','umbrella', 'handbag','tie','suitcase',
+#'frisbee','skis','snowboard','sports ball','kite', 'baseball bat','baseball glove','skateboard','surfboard','tennis racket',
+#'bottle','wine glass','cup','fork','knife','spoon','bowl','banana','apple','sandwich',
+#'orange','broccoli','carrot','hot dog','pizza','donut','cake','chair','couch','potted plant',
+#'bed','dining table','window','tv','laptop','mouse','remote','keyboard','cell phone','microwave',
+#'oven', 'sink','refrigerator','blender','book','clock','vase','scissors','teddy bear','hair drier','tooth brush')
+#CLASSES = ('__background__', # always index 0
+#           'table', 'tide', 'downy','clorox','coke','cup')
+#CLASSES = ('__background__', # always index 0
+#           'tide', 'downy','clorox', 'spray_bottle_a', 'waterpot', 'sugar', 'red_bowl', 'shampoo',
+#           'salt', 'toy', 'detergent', 'scotch_brite', 'blue_cup', 'ranch', 'coke')
 CLASSES = ('__background__',
-           'chair', 'table', 'lobby_chair', 'lobby_table_small', 'lobby_table_large')
-
-NETS = {'vgg16': ('VGG16',
-                  'vgg16_faster_rcnn_iter_50000.caffemodel'),
+           'car')
+NETS = {'vgg16': ('pascal_voc',
+                  'VGG16_faster_rcnn_final.caffemodel'),
+        'coco': ('coco',
+                 'coco_vgg16_faster_rcnn_final.caffemodel'),
+        'progress': ('progresszheming',
+                 'vgg16_faster_rcnn_iter_100000.zheming'),
         'zf': ('ZF',
                   'ZF_faster_rcnn_final.caffemodel')}
-
 
 def vis_detections(im, class_name, dets, ax,thresh=0.0):
     """Draw detected bounding boxes."""
@@ -83,8 +104,8 @@ def demo(net, image_name):
            '{:d} object proposals').format(timer.total_time, boxes.shape[0])
 
     # Visualize detections for each class
-    CONF_THRESH = 0.1       
-    NMS_THRESH = 0.005
+    CONF_THRESH = 0.7
+    NMS_THRESH = 0.05
     fig, ax = plt.subplots(figsize=(12, 12))
     for cls_ind, cls in enumerate(CLASSES[1:]):
         cls_ind += 1 # because we skipped background
@@ -96,7 +117,7 @@ def demo(net, image_name):
         dets = dets[keep, :]
         vis_detections(im, cls, dets, ax, thresh=CONF_THRESH)
     im = im[:, :, (2, 1, 0)]
-    
+
     ax.set_title(('class detections with '
                  'p(class | box) >= {:.1f}').format(CONF_THRESH),
                   fontsize=14)
@@ -112,7 +133,7 @@ def parse_args():
                         help='Use CPU mode (overrides --gpu)',
                         action='store_true')
     parser.add_argument('--net', dest='demo_net', help='Network to use [vgg16]',
-                        choices=NETS.keys(), default='vgg16')
+                        choices=NETS.keys(), default='progress')
 
     args = parser.parse_args()
 
@@ -123,7 +144,7 @@ if __name__ == '__main__':
 
     args = parse_args()
 
-    prototxt = os.path.join(cfg.MODELS_DIR, NETS[args.demo_net][0],
+    prototxt = os.path.join(cfg.MODELS_DIR, NETS[args.demo_net][0], 'VGG16',
                             'faster_rcnn_end2end', 'test.prototxt')
     caffemodel = os.path.join(cfg.DATA_DIR, 'faster_rcnn_models',
                               NETS[args.demo_net][1])
@@ -142,13 +163,13 @@ if __name__ == '__main__':
     net = caffe.Net(prototxt, caffemodel, caffe.TEST)
 
     print '\n\nLoaded network {:s}'.format(caffemodel)
-    
+
     # Warmup on a dummy image
     im = 128 * np.ones((224, 224, 3), dtype=np.uint8)
     for i in xrange(2):
         _, _= im_detect(net, im)
-        
-        
+
+
     im_names = glob.glob(os.path.join(cfg.DATA_DIR, 'demo', '*.jpg'))
 
     for im_name in im_names:

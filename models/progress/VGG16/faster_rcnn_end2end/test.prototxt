@@ -415,7 +415,7 @@ layer {
   param { lr_mult: 1.0 decay_mult: 1.0 }
   param { lr_mult: 2.0 decay_mult: 0 }
   convolution_param {
-    num_output: 18   # 2(bg/fg) * 9(anchors)
+    num_output: 24   # 2(bg/fg) * 12(anchors)
     kernel_size: 1 pad: 0 stride: 1
     weight_filler { type: "gaussian" std: 0.01 }
     bias_filler { type: "constant" value: 0 }
@@ -429,7 +429,7 @@ layer {
   param { lr_mult: 1.0 decay_mult: 1.0 }
   param { lr_mult: 2.0 decay_mult: 0 }
   convolution_param {
-    num_output: 36   # 4 * 9(anchors)
+    num_output: 48   # 4 * 12(anchors)
     kernel_size: 1 pad: 0 stride: 1
     weight_filler { type: "gaussian" std: 0.01 }
     bias_filler { type: "constant" value: 0 }
@@ -456,7 +456,7 @@ layer {
   type: 'Reshape'
   bottom: 'rpn_cls_prob'
   top: 'rpn_cls_prob_reshape'
-  reshape_param { shape { dim: 0 dim: 18 dim: -1 dim: 0 } }
+  reshape_param { shape { dim: 0 dim: 24 dim: -1 dim: 0 } }
 }
 layer {
   name: 'proposal'
@@ -464,11 +464,11 @@ layer {
   bottom: 'rpn_cls_prob_reshape'
   bottom: 'rpn_bbox_pred'
   bottom: 'im_info'
-  top: 'rpn_rois'
+  top: 'rois'
   python_param {
     module: 'rpn.proposal_layer'
     layer: 'ProposalLayer'
-    param_str: "'feat_stride': 16"
+    param_str: "'feat_stride': 16 \n'scales': !!python/tuple [4, 8, 16, 32]"
   }
 }
 
@@ -478,7 +478,7 @@ layer {
   name: "roi_pool5"
   type: "ROIPooling"
   bottom: "conv5_3"
-  bottom: "rpn_rois"
+  bottom: "rois"
   top: "pool5"
   roi_pooling_param {
     pooled_w: 7
@@ -510,15 +510,6 @@ layer {
   top: "fc6"
 }
 layer {
-  name: "drop6"
-  type: "Dropout"
-  bottom: "fc6"
-  top: "fc6"
-  dropout_param {
-    dropout_ratio: 0.5
-  }
-}
-layer {
   name: "fc7"
   type: "InnerProduct"
   bottom: "fc6"
@@ -542,15 +533,6 @@ layer {
   top: "fc7"
 }
 layer {
-  name: "drop7"
-  type: "Dropout"
-  bottom: "fc7"
-  top: "fc7"
-  dropout_param {
-    dropout_ratio: 0.5
-  }
-}
-layer {
   name: "cls_score_progress"
   type: "InnerProduct"
   bottom: "fc7"
@@ -564,7 +546,7 @@ layer {
     decay_mult: 0
   }
   inner_product_param {
-    num_output: 6
+    num_output: 7
     weight_filler {
       type: "gaussian"
       std: 0.01
@@ -589,7 +571,7 @@ layer {
     decay_mult: 0
   }
   inner_product_param {
-    num_output: 24
+    num_output: 28
     weight_filler {
       type: "gaussian"
       std: 0.001

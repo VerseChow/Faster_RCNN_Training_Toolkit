@@ -33,7 +33,7 @@ class progress(imdb):
                          'mustard', 'coke', 'smile_blue', 'protein', 'quaker', \
                          'ecliff', 'kind', 'green_tea', 'strawberry', 'naturevalley', \
                          'coffee_mate', 'iced_coffee', 'soy_sauce', 'folgers', 'cheese_whiz', \
-                         'olive_oil', 'domino', 'salt', 'campbell', 'eclif') 
+                         'olive_oil', 'domino', 'salt', 'campbell', 'eclif')
         self._class_to_ind = dict(zip(self.classes, xrange(self.num_classes)))
         # image ext format
         self._image_ext = '.jpg'
@@ -189,7 +189,7 @@ class progress(imdb):
         filename = os.path.join(self._data_path, 'Annotations', index + '.xml')
         tree = ET.parse(filename)
         objs = tree.findall('object')
-        
+
         num_objs = len(objs)
 
         boxes = np.zeros((num_objs, 4), dtype=np.uint16)
@@ -202,10 +202,10 @@ class progress(imdb):
         for ix, obj in enumerate(objs):
             bbox = obj.find('bndbox')
             # Make pixel indexes 0-based
-            x1 = float(bbox.find('xmin').text) 
-            y1 = float(bbox.find('ymin').text) 
-            x2 = float(bbox.find('xmax').text) 
-            y2 = float(bbox.find('ymax').text) 
+            x1 = float(bbox.find('xmin').text)
+            y1 = float(bbox.find('ymin').text)
+            x2 = float(bbox.find('xmax').text)
+            y2 = float(bbox.find('ymax').text)
             cls = self._class_to_ind[obj.find('name').text.lower().strip()]
 
             boxes[ix, :] = [x1, y1, x2, y2]

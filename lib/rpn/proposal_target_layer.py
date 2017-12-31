@@ -123,7 +123,7 @@ def _get_bbox_regression_labels(bbox_target_data, num_classes):
     for ind in inds:
         cls = clss[ind]
         start = int(4 * cls)
-        end = int(start + 4)
+        end = start + 4
         bbox_targets[int(ind), start:end] = bbox_target_data[int(ind), 1:]
         bbox_inside_weights[ind, start:end] = cfg.TRAIN.BBOX_INSIDE_WEIGHTS
     return bbox_targets, bbox_inside_weights
@@ -162,9 +162,8 @@ def _sample_rois(all_rois, gt_boxes, fg_rois_per_image, rois_per_image, num_clas
     # foreground RoIs
     fg_rois_per_this_image = int(min(fg_rois_per_image, fg_inds.size))
     # Sample foreground regions without replacement
-   
     if fg_inds.size > 0:
-        fg_inds = npr.choice(fg_inds, size=int(fg_rois_per_this_image), replace=False)
+        fg_inds = npr.choice(fg_inds, size=fg_rois_per_this_image, replace=False)
 
     # Select background RoIs as those within [BG_THRESH_LO, BG_THRESH_HI)
     bg_inds = np.where((max_overlaps < cfg.TRAIN.BG_THRESH_HI) &

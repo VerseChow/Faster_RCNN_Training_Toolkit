@@ -52,56 +52,57 @@ def _get_image_blob(im):
 
     # Create a blob to hold the input images
     blob = im_list_to_blob(processed_ims)
+
     return blob, np.array(im_scale_factors)
 
-def _get_rpn_rois_blob(im_rpn_rois, im_scale_factors):
-    """Converts rpn_rois into network inputs.
+def _get_rois_blob(im_rois, im_scale_factors):
+    """Converts RoIs into network inputs.
 
     Arguments:
-        im_rpn_rois (ndarray): R x 4 matrix of rpn_rois in original image coordinates
+        im_rois (ndarray): R x 4 matrix of RoIs in original image coordinates
         im_scale_factors (list): scale factors as returned by _get_image_blob
 
     Returns:
-        blob (ndarray): R x 5 matrix of rpn_rois in the image pyramid
+        blob (ndarray): R x 5 matrix of RoIs in the image pyramid
     """
-    rpn_rois, levels = _project_im_rpn_rois(im_rpn_rois, im_scale_factors)
-    rpn_rois_blob = np.hstack((levels, rpn_rois))
-    return rpn_rois_blob.astype(np.float32, copy=False)
+    rois, levels = _project_im_rois(im_rois, im_scale_factors)
+    rois_blob = np.hstack((levels, rois))
+    return rois_blob.astype(np.float32, copy=False)
 
-def _project_im_rpn_rois(im_rpn_rois, scales):
-    """Project image rpn_rois into the image pyramid built by _get_image_blob.
+def _project_im_rois(im_rois, scales):
+    """Project image RoIs into the image pyramid built by _get_image_blob.
 
     Arguments:
-        im_rpn_rois (ndarray): R x 4 matrix of rpn_rois in original image coordinates
+        im_rois (ndarray): R x 4 matrix of RoIs in original image coordinates
         scales (list): scale factors as returned by _get_image_blob
 
     Returns:
-        rpn_rois (ndarray): R x 4 matrix of projected RoI coordinates
+        rois (ndarray): R x 4 matrix of projected RoI coordinates
         levels (list): image pyramid levels used by each projected RoI
     """
-    im_rpn_rois = im_rpn_rois.astype(np.float, copy=False)
+    im_rois = im_rois.astype(np.float, copy=False)
 
     if len(scales) > 1:
-        widths = im_rpn_rois[:, 2] - im_rpn_rois[:, 0] + 1
-        heights = im_rpn_rois[:, 3] - im_rpn_rois[:, 1] + 1
+        widths = im_rois[:, 2] - im_rois[:, 0] + 1
+        heights = im_rois[:, 3] - im_rois[:, 1] + 1
 
         areas = widths * heights
         scaled_areas = areas[:, np.newaxis] * (scales[np.newaxis, :] ** 2)
         diff_areas = np.abs(scaled_areas - 224 * 224)
         levels = diff_areas.argmin(axis=1)[:, np.newaxis]
     else:
-        levels = np.zeros((im_rpn_rois.shape[0], 1), dtype=np.int)
+        levels = np.zeros((im_rois.shape[0], 1), dtype=np.int)
 
-    rpn_rois = im_rpn_rois * scales[levels]
+    rois = im_rois * scales[levels]
 
-    return rpn_rois, levels
+    return rois, levels
 
-def _get_blobs(im, rpn_rois):
-    """Convert an image and rpn_rois within that image into network inputs."""
-    blobs = {'data' : None, 'rpn_rois' : None}
+def _get_blobs(im, rois):
+    """Convert an image and RoIs within that image into network inputs."""
+    blobs = {'data' : None, 'rois' : None}
     blobs['data'], im_scale_factors = _get_image_blob(im)
     if not cfg.TEST.HAS_RPN:
-        blobs['rpn_rois'] = _get_rpn_rois_blob(rpn_rois, im_scale_factors)
+        blobs['rois'] = _get_rois_blob(rois, im_scale_factors)
     return blobs, im_scale_factors
 
 def im_detect(net, im, boxes=None):
@@ -119,16 +120,16 @@ def im_detect(net, im, boxes=None):
     """
     blobs, im_scales = _get_blobs(im, boxes)
 
-    # When mapping from image rpn_rois to feature map rpn_rois, there's some aliasing
-    # (some distinct image rpn_rois get mapped to the same feature ROI).
-    # Here, we identify duplicate feature rpn_rois, so we only compute features
+    # When mapping from image ROIs to feature map ROIs, there's some aliasing
+    # (some distinct image ROIs get mapped to the same feature ROI).
+    # Here, we identify duplicate feature ROIs, so we only compute features
     # on the unique subset.
     if cfg.DEDUP_BOXES > 0 and not cfg.TEST.HAS_RPN:
         v = np.array([1, 1e3, 1e6, 1e9, 1e12])
-        hashes = np.round(blobs['rpn_rois'] * cfg.DEDUP_BOXES).dot(v)
+        hashes = np.round(blobs['rois'] * cfg.DEDUP_BOXES).dot(v)
         _, index, inv_index = np.unique(hashes, return_index=True,
                                         return_inverse=True)
-        blobs['rpn_rois'] = blobs['rpn_rois'][index, :]
+        blobs['rois'] = blobs['rois'][index, :]
         boxes = boxes[index, :]
 
     if cfg.TEST.HAS_RPN:
@@ -138,40 +139,37 @@ def im_detect(net, im, boxes=None):
             dtype=np.float32)
 
     # reshape network inputs
-   
     net.blobs['data'].reshape(*(blobs['data'].shape))
-    #net.blobs['data'].reshape(*(blobs['data'].shape))
     if cfg.TEST.HAS_RPN:
         net.blobs['im_info'].reshape(*(blobs['im_info'].shape))
     else:
-        net.blobs['rpn_rois'].reshape(*(blobs['rpn_rois'].shape))
-    
+        net.blobs['rois'].reshape(*(blobs['rois'].shape))
+
     # do forward
     forward_kwargs = {'data': blobs['data'].astype(np.float32, copy=False)}
     if cfg.TEST.HAS_RPN:
-       
         forward_kwargs['im_info'] = blobs['im_info'].astype(np.float32, copy=False)
     else:
-        forward_kwargs['rpn_rois'] = blobs['rpn_rois'].astype(np.float32, copy=False)
-
+        forward_kwargs['rois'] = blobs['rois'].astype(np.float32, copy=False)
     blobs_out = net.forward(**forward_kwargs)
-  
+
     if cfg.TEST.HAS_RPN:
         assert len(im_scales) == 1, "Only single-image batch implemented"
-        rpn_rois = net.blobs['rpn_rois'].data.copy()
+        rois = net.blobs['rois'].data.copy()
         # unscale back to raw image space
-        boxes = rpn_rois[:, 1:5] / im_scales[0]
+        boxes = rois[:, 1:5] / im_scales[0]
 
     if cfg.TEST.SVM:
         # use the raw scores before softmax under the assumption they
         # were trained as linear SVMs
-        scores = net.blobs['progress_cls_score'].data
+        scores = net.blobs['cls_score_progress'].data
     else:
         # use softmax estimated probabilities
         scores = blobs_out['cls_prob']
-    
+
     if cfg.TEST.BBOX_REG:
         # Apply bounding-box regression deltas
+        #box_deltas = blobs_out['bbox_pred']
         box_deltas = blobs_out['bbox_pred_progress']
         pred_boxes = bbox_transform_inv(boxes, box_deltas)
         pred_boxes = clip_boxes(pred_boxes, im.shape)
@@ -249,9 +247,9 @@ def test_net(net, imdb, max_per_image=100, thresh=0.05, vis=False):
         if cfg.TEST.HAS_RPN:
             box_proposals = None
         else:
-            # The roidb may contain ground-truth rpn_rois (for example, if the roidb
+            # The roidb may contain ground-truth rois (for example, if the roidb
             # comes from the training or val split). We only want to evaluate
-            # detection on the *non*-ground-truth rpn_rois. We select those the 
+            # detection on the *non*-ground-truth rois. We select those the rois
             # that have the gt_classes field set to 0, which means there's no
             # ground truth.
             box_proposals = roidb[i]['boxes'][roidb[i]['gt_classes'] == 0]
