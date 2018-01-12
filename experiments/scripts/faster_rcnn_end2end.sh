@@ -41,9 +41,10 @@ echo Logging output to "$LOG"
 
 case $TESTTRAIN in
   "-train")
+    PRE_TRAINED_NET_DIR=$5
     time python2 ./tools/train_net.py --gpu ${GPU_ID} \
       --solver models/${PT_DIR}/${NET}/faster_rcnn_end2end/solver.prototxt \
-      --weights data/faster_rcnn_models/vgg16_faster_rcnn_iter_karthik.caffemodel\
+      --weights ${PRE_TRAINED_NET_DIR} \
       --imdb ${TRAIN_IMDB} \
       --iters ${ITERS} \
       --cfg experiments/cfgs/faster_rcnn_end2end.yml \
