@@ -8,9 +8,9 @@ There are two usages of this program, one is used for training end to end faster
 
 ## Training Own Dataset
 
-1. Constuct your dataset structure and follow the dataset structure like [VOC2012](http://host.robots.ox.ac.uk/pascal/VOC/voc2012/), and put it in /data folder like /progress folder in there
+1. Constuct your dataset structure and follow the dataset structure like [VOC2012](http://host.robots.ox.ac.uk/pascal/VOC/voc2012/), and put it in /data folder like /progressiros folder in there
 2. In `/data/scripts` folder, run fetch_imagenet_models.sh to fetch pretrained imagenet model and put it into `/data/faster_rcnn_models`
-3. In `/lib/models/progress/VGG16/faster_rcnn_end2end`, modify two files named test.protxt and train.protxt to specify your dataset. In `test.protxt` file, modify cls_score and bbox_pred layers output to number of your dataset classes and 4*(num of your dataset classes)
+3. In `/lib/models/progressiros/VGG16/faster_rcnn_end2end`, modify two files named test.protxt and train.protxt to specify your dataset. In `test.protxt` file, modify cls_score and bbox_pred layers output to number of your dataset classes and 4*(num of your dataset classes)
 4. In `/lib/datasets/tools` folder, in progress.py, modify name of classes
 5. specify pretrained model in `train_progress.sh`
 
@@ -28,14 +28,24 @@ The trained model will be in `/output/faster_rcnn_end2end/train` folder
 
 ## Testing
 
-1. Please put the trained model into /data/faster_rcnn_models/ folder, which could be downloaded in [model](https://drive.google.com/open?id=0BwzTAZGR6DHda1NNMHNRVU9ZZEk)
-2. Please put test image in /data/demo folder
-3. In `/tools/` folder, in demo.py file, modify class name and model name you want to use
-4. Run `demo.py` file to see the results
+1. Please put test image in /data/demo folder
+2. In `/tools/` folder, in demo.py file, modify class name and model name you want to use
+3. Run `demo.py` file to see the results and specify pretrianed model
 
 ### Usage for Calculating mAP
 1. specify pretrained model in `test_progress.sh`
 2. Run `sh test_progress.h`
+3. The default setting for calculating mAP is to read results from text file and compare them to xml file, you can change the setting in `experiments/scripts/faster_rcnn_end2end.sh` by setting `--txt` to 0. Then it well detect the image and calculate the mAP
+4. The format of results of detection is like following:
+```
+obj1 xmin ymin xmax ymax
+obj2 xmin ymin xmax ymax
+...
+```
+
+### Note
+1. You may have to change path in `lib/datasets/tools/factory.py` for training
+2. You may have to change path in line 258 in `lib/fast_rcnn/test.py` and line 85 in `tools/train_net.py` for reading img and detection results path for testing
 
 For more detail, please email ywchow@umich.edu
 

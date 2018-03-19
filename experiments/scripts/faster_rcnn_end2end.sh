@@ -57,6 +57,7 @@ case $TESTTRAIN in
       --net ${NET_DIR} \
       --imdb ${TEST_IMDB} \
       --cfg experiments/cfgs/faster_rcnn_end2end.yml \
+      --txt 1 \
       ${EXTRA_ARGS}
   ;;
 esac
