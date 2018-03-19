@@ -181,7 +181,7 @@ __C.DEDUP_BOXES = 1./16.
 __C.PIXEL_MEANS = np.array([[[102.9801, 115.9465, 122.7717]]])
 
 # For reproducibility
-__C.RNG_SEED = 3
+__C.RNG_SEED = 17
 
 # A small number that's used many times
 __C.EPS = 1e-14
@@ -207,6 +207,10 @@ __C.USE_GPU_NMS = True
 # Default GPU device id
 __C.GPU_ID = 0
 
+__C.proj_name = {'coco': ('cls_score', 'bbox_pred'),
+                'progress': ('cls_score_progress', 'bbox_pred_progress'),
+                'iros': ('cls_score_iros_13obj', 'bbox_pred_iros_13obj')}
+__C.option = 'iros'
 
 def get_output_dir(imdb, net=None):
     """Return the directory where experimental artifacts are placed.

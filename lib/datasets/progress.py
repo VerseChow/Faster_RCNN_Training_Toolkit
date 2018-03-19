@@ -22,21 +22,16 @@ from fast_rcnn.config import cfg
 class progress(imdb):
     def __init__(self, image_set, devkit_path):
         imdb.__init__(self, image_set)
-        self._year = 2012
+        self._year = "2012"
         self._image_set = image_set
         self._devkit_path = self._get_default_path() if devkit_path is None \
                             else devkit_path
         self._data_path = os.path.join(self._devkit_path)
         self._classes = ('__background__', # always index 0
-                         'coconut_oil', 'sonic', 'smile_yellow', 'original', \
-                         'smile_green', 'horse_raddish', 'medleys', 'teddy', \
-                         'mustard', 'coke', 'smile_blue', 'protein', 'quaker', \
-                         'ecliff', 'kind', 'green_tea', 'strawberry', 'naturevalley', \
-                         'coffee_mate', 'iced_coffee', 'soy_sauce', 'folgers', 'cheese_whiz', \
-                         'olive_oil', 'domino', 'salt', 'campbell', 'eclif')
+                    'apple', 'bowl', 'cereal', 'coke', 'cup', 'milk', 'pringle', 'table', 'shampoo',
+                    'alum_cup', 'dispenser', 'loofah', 'rack')
         self._class_to_ind = dict(zip(self.classes, xrange(self.num_classes)))
-        # image ext format
-        self._image_ext = '.jpg'
+        self._image_ext = '.png'
         self._image_index = self._load_image_set_index()
         # Default to roidb handler
         self._roidb_handler = self.selective_search_roidb
@@ -52,7 +47,7 @@ class progress(imdb):
                        'min_size'    : 2}
 
         assert os.path.exists(self._devkit_path), \
-                'progress path does not exist: {}'.format(self._devkit_path)
+                'VOCdevkit path does not exist: {}'.format(self._devkit_path)
         assert os.path.exists(self._data_path), \
                 'Path does not exist: {}'.format(self._data_path)
 
@@ -66,10 +61,8 @@ class progress(imdb):
         """
         Construct an image path from the image's "index" identifier.
         """
-
         image_path = os.path.join(self._data_path, 'JPEGImages',
                                   index + self._image_ext)
-        #print image_path
         assert os.path.exists(image_path), \
                 'Path does not exist: {}'.format(image_path)
         return image_path
@@ -79,7 +72,7 @@ class progress(imdb):
         Load the indexes listed in this dataset's image set file.
         """
         # Example path to image set file:
-        # self._devkit_path + /VOCdevkit2012/VOC2012/ImageSets/Main/val.txt
+        # self._devkit_path + /VOCdevkit2007/VOC2007/ImageSets/Main/val.txt
         image_set_file = os.path.join(self._data_path, 'ImageSets', 'Main',
                                       self._image_set + '.txt')
         assert os.path.exists(image_set_file), \
@@ -131,7 +124,7 @@ class progress(imdb):
             print '{} ss roidb loaded from {}'.format(self.name, cache_file)
             return roidb
 
-        if int(self._year) == 2012 or self._image_set != 'test':
+        if int(self._year) == 2007 or self._image_set != 'test':
             gt_roidb = self.gt_roidb()
             ss_roidb = self._load_selective_search_roidb(gt_roidb)
             roidb = imdb.merge_roidbs(gt_roidb, ss_roidb)
@@ -144,7 +137,7 @@ class progress(imdb):
         return roidb
 
     def rpn_roidb(self):
-        if int(self._year) == 2012 or self._image_set != 'test':
+        if int(self._year) == 2007 or self._image_set != 'test':
             gt_roidb = self.gt_roidb()
             rpn_roidb = self._load_rpn_roidb(gt_roidb)
             roidb = imdb.merge_roidbs(gt_roidb, rpn_roidb)
@@ -189,7 +182,14 @@ class progress(imdb):
         filename = os.path.join(self._data_path, 'Annotations', index + '.xml')
         tree = ET.parse(filename)
         objs = tree.findall('object')
-
+        #if not self.config['use_diff']:
+        #    # Exclude the samples labeled as difficult
+        #    non_diff_objs = [
+        #        obj for obj in objs if int(obj.find('difficult').text) == 0]
+        #    # if len(non_diff_objs) != len(objs):
+        #    #     print 'Removed {} difficult objects'.format(
+        #    #         len(objs) - len(non_diff_objs))
+        #    objs = non_diff_objs
         num_objs = len(objs)
 
         boxes = np.zeros((num_objs, 4), dtype=np.uint16)
@@ -202,14 +202,12 @@ class progress(imdb):
         for ix, obj in enumerate(objs):
             bbox = obj.find('bndbox')
             # Make pixel indexes 0-based
-            x1 = float(bbox.find('xmin').text)
-            y1 = float(bbox.find('ymin').text)
-            x2 = float(bbox.find('xmax').text)
-            y2 = float(bbox.find('ymax').text)
+            x1 = float(bbox.find('xmin').text) - 1
+            y1 = float(bbox.find('ymin').text) - 1
+            x2 = float(bbox.find('xmax').text) - 1
+            y2 = float(bbox.find('ymax').text) - 1
             cls = self._class_to_ind[obj.find('name').text.lower().strip()]
-
             boxes[ix, :] = [x1, y1, x2, y2]
-
             gt_classes[ix] = cls
             overlaps[ix, cls] = 1.0
             seg_areas[ix] = (x2 - x1 + 1) * (y2 - y1 + 1)
@@ -228,7 +226,7 @@ class progress(imdb):
         return comp_id
 
     def _get_voc_results_file_template(self):
-        # VOCdevkit/results/VOC2012/Main/<comp_id>_det_test_aeroplane.txt
+        # VOCdevkit/results/VOC2007/Main/<comp_id>_det_test_aeroplane.txt
         filename = self._get_comp_id() + '_det_' + self._image_set + '_{:s}.txt'
         path = os.path.join(
             self._devkit_path,
@@ -268,7 +266,6 @@ class progress(imdb):
             self._image_set + '.txt')
         cachedir = os.path.join(self._devkit_path, 'annotations_cache')
         aps = []
-        recs = []
         # The PASCAL VOC metric changed in 2010
         use_07_metric = True if int(self._year) < 2010 else False
         print 'VOC07 metric? ' + ('Yes' if use_07_metric else 'No')
@@ -282,7 +279,6 @@ class progress(imdb):
                 filename, annopath, imagesetfile, cls, cachedir, ovthresh=0.5,
                 use_07_metric=use_07_metric)
             aps += [ap]
-            recs += [rec[-1]]
             print('AP for {} = {:.4f}'.format(cls, ap))
             with open(os.path.join(output_dir, cls + '_pr.pkl'), 'w') as f:
                 cPickle.dump({'rec': rec, 'prec': prec, 'ap': ap}, f)
@@ -291,11 +287,8 @@ class progress(imdb):
         print('Results:')
         for ap in aps:
             print('{:.3f}'.format(ap))
-        print('Mean Recall= {:.4f}'.format(np.mean(recs)))
+        print('{:.3f}'.format(np.mean(aps)))
         print('~~~~~~~~')
-        print('Results:')
-        for rec in recs:
-            print('{:.3f}'.format(rec))
         print('')
         print('--------------------------------------------------------------')
         print('Results computed with the **unofficial** Python eval code.')
@@ -341,6 +334,6 @@ class progress(imdb):
 
 if __name__ == '__main__':
     from datasets.pascal_voc import pascal_voc
-    d = pascal_voc('trainval', '2012')
+    d = pascal_voc('trainval', '2007')
     res = d.roidb
     from IPython import embed; embed()

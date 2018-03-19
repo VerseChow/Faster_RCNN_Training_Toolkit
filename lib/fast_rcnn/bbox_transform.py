@@ -43,6 +43,9 @@ def bbox_transform_inv(boxes, deltas):
     dw = deltas[:, 2::4]
     dh = deltas[:, 3::4]
 
+    dw = np.minimum(dw, cfg.BBOX_XFORM_CLIP)
+    dh = np.minimum(dh, cfg.BBOX_XFORM_CLIP)
+
     pred_ctr_x = dx * widths[:, np.newaxis] + ctr_x[:, np.newaxis]
     pred_ctr_y = dy * heights[:, np.newaxis] + ctr_y[:, np.newaxis]
     pred_w = np.exp(dw) * widths[:, np.newaxis]

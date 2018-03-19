@@ -24,11 +24,11 @@ EXTRA_ARGS_SLUG=${EXTRA_ARGS// /_}
 
 case $DATASET in
   progress)
-    TRAIN_IMDB="progress_train"
-    TEST_IMDB="progress_test"
-    PT_DIR="progress"
+    TRAIN_IMDB="progressiros_train"
+    TEST_IMDB="progressiros_test"
+    PT_DIR="progressiros"
     ITERS=100000
-  ;;  
+  ;;
   *)
     echo "No dataset given"
     exit

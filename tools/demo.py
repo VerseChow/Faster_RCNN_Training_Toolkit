@@ -25,36 +25,20 @@ import caffe, os, sys, cv2
 import argparse
 import glob
 
+CLASSES = ('__background__', # always index 0
+            'apple', 'bowl', 'cereal', 'coke', 'cup', 'milk', 'pringle', 'table', 'shampoo',
+            'alum_cup', 'dispenser', 'loofah', 'rack')
 #CLASSES = ('__background__',
-#           'aeroplane', 'bicycle', 'bird', 'boat',
-#           'bottle', 'bus', 'car', 'cat', 'chair',
-#           'cow', 'diningtable', 'dog', 'horse',
-#           'motorbike', 'person', 'pottedplant',
-#           'sheep', 'sofa', 'train', 'tvmonitor')
-#CLASSES = ('background',
-#'person', 'bicycle', 'car','motorcycle','airplane','bus','train', 'truck', 'boat','traffic light',
-#'fire hydrant', 'stop sign', 'parking meter', 'bench','bird','cat','dog','horse','sheep',
-#'cow', 'elephant','bear','zebra','giraffe','hat','umbrella', 'handbag','tie','suitcase',
-#'frisbee','skis','snowboard','sports ball','kite', 'baseball bat','baseball glove','skateboard','surfboard','tennis racket',
-#'bottle','wine glass','cup','fork','knife','spoon','bowl','banana','apple','sandwich',
-#'orange','broccoli','carrot','hot dog','pizza','donut','cake','chair','couch','potted plant',
-#'bed','dining table','window','tv','laptop','mouse','remote','keyboard','cell phone','microwave',
-#'oven', 'sink','refrigerator','blender','book','clock','vase','scissors','teddy bear','hair drier','tooth brush')
-#CLASSES = ('__background__', # always index 0
-#           'table', 'tide', 'downy','clorox','coke','cup')
-#CLASSES = ('__background__', # always index 0
-#           'tide', 'downy','clorox', 'spray_bottle_a', 'waterpot', 'sugar', 'red_bowl', 'shampoo',
-#           'salt', 'toy', 'detergent', 'scotch_brite', 'blue_cup', 'ranch', 'coke')
-CLASSES = ('__background__',
-           'car')
+#           'car')
 NETS = {'vgg16': ('pascal_voc',
                   'VGG16_faster_rcnn_final.caffemodel'),
         'coco': ('coco',
                  'coco_vgg16_faster_rcnn_final.caffemodel'),
-        'progress': ('progresszheming',
-                 'vgg16_faster_rcnn_iter_100000.zheming'),
+        'progress': ('progressiros',
+                 'vgg16_faster_rcnn_iter_63020.iros.13obj'),
         'zf': ('ZF',
-                  'ZF_faster_rcnn_final.caffemodel')}
+                  'ZF_faster_rcnn_final.caffemodel'),
+        'rob599test': ('rob599test', 'rob599_60000.caffemodel')}
 
 def vis_detections(im, class_name, dets, ax,thresh=0.0):
     """Draw detected bounding boxes."""
@@ -104,7 +88,7 @@ def demo(net, image_name):
            '{:d} object proposals').format(timer.total_time, boxes.shape[0])
 
     # Visualize detections for each class
-    CONF_THRESH = 0.7
+    CONF_THRESH = 0.3
     NMS_THRESH = 0.05
     fig, ax = plt.subplots(figsize=(12, 12))
     for cls_ind, cls in enumerate(CLASSES[1:]):
@@ -122,6 +106,8 @@ def demo(net, image_name):
                  'p(class | box) >= {:.1f}').format(CONF_THRESH),
                   fontsize=14)
     ax.imshow(im, aspect='equal')
+    extent = ax.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
+    fig.savefig(image_name, bbox_inches=extent)
 
 
 def parse_args():

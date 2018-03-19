@@ -9,13 +9,15 @@
 
 __sets = {}
 
+from datasets.pascal_voc import pascal_voc
 from datasets.progress import progress
+from datasets.coco import coco
 import numpy as np
 
 #specify the data path
-progress_path = '/home/verse/Documents/Faster_RCNN_Training_Toolkit/data/progress'
+progress_path = '/home/verse/Documents/py-faster-rcnn/data/progressiros'
 for split in ['train', 'test']:
-    name = '{}_{}'.format('progress', split)
+    name = '{}_{}'.format('progressiros', split)
     __sets[name] = (lambda split=split: progress(split, progress_path))
 
 def get_imdb(name):

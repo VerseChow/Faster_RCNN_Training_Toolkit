@@ -3,7 +3,7 @@ layer {
   name: 'data'
   type: 'Python'
   top: 'data'
-  top: 'rpn_rois'
+  top: 'rois'
   top: 'labels'
   top: 'bbox_targets'
   top: 'bbox_inside_weights'
@@ -11,7 +11,7 @@ layer {
   python_param {
     module: 'roi_data_layer.layer'
     layer: 'RoIDataLayer'
-    param_str: "'num_classes': 2"
+    param_str: "'num_classes': 8"
   }
 }
 layer {
@@ -369,7 +369,7 @@ layer {
   name: "roi_pool5"
   type: "ROIPooling"
   bottom: "conv5_3"
-  bottom: "rpn_rois"
+  bottom: "rois"
   top: "pool5"
   roi_pooling_param {
     pooled_w: 7
@@ -399,15 +399,6 @@ layer {
   top: "fc6"
 }
 layer {
-  name: "drop6"
-  type: "Dropout"
-  bottom: "fc6"
-  top: "fc6"
-  dropout_param {
-    dropout_ratio: 0.5
-  }
-}
-layer {
   name: "fc7"
   type: "InnerProduct"
   bottom: "fc6"
@@ -429,19 +420,10 @@ layer {
   top: "fc7"
 }
 layer {
-  name: "drop7"
-  type: "Dropout"
-  bottom: "fc7"
-  top: "fc7"
-  dropout_param {
-    dropout_ratio: 0.5
-  }
-}
-layer {
-  name: "progress_cls_score"
+  name: "cls_score"
   type: "InnerProduct"
   bottom: "fc7"
-  top: "progress_cls_score"
+  top: "cls_score"
   param {
     lr_mult: 1
   }
@@ -449,7 +431,7 @@ layer {
     lr_mult: 2
   }
   inner_product_param {
-    num_output: 3
+    num_output: 8
     weight_filler {
       type: "gaussian"
       std: 0.01
@@ -472,7 +454,7 @@ layer {
     lr_mult: 2
   }
   inner_product_param {
-    num_output: 12
+    num_output: 32
     weight_filler {
       type: "gaussian"
       std: 0.001
@@ -486,7 +468,7 @@ layer {
 layer {
   name: "loss_cls"
   type: "SoftmaxWithLoss"
-  bottom: "progress_cls_score"
+  bottom: "cls_score"
   bottom: "labels"
   top: "loss_cls"
   loss_weight: 1
