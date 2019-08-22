@@ -9,7 +9,7 @@ There are two usages of this program, one is used for training end to end faster
 ## Training Own Dataset
 
 1. Constuct your dataset structure and follow the dataset structure like [VOC2012](http://host.robots.ox.ac.uk/pascal/VOC/voc2012/), and put it in `/data` folder like `/progressiros` folder in there
-2. In `/data/scripts` folder, run fetch_imagenet_models.sh to fetch pretrained imagenet model and put it into `/data/faster_rcnn_models`
+2. In `/data/scripts` folder, run `fetch_imagenet_models.sh` to fetch pretrained imagenet model and put it into `/data/faster_rcnn_models`
 3. In `/lib/models/progressiros/VGG16/faster_rcnn_end2end`, modify two files named test.protxt and train.protxt to specify your dataset. In `test.protxt` file, modify cls_score and bbox_pred layers output to number of your dataset classes and 4*(num of your dataset classes)
 4. In `/lib/datasets/tools` folder, in progress.py, modify name of classes
 5. specify pretrained model in `train_progress.sh`
